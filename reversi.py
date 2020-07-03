@@ -1,9 +1,12 @@
+import random
+
 class Reversi: 
     def __init__(self):
         self.grid = [['' for i in range(8)] for i in range(8)]
         self.grid[3][3] = self.grid[4][4] = 'w'
         self.grid[3][4] = self.grid[4][3] = 'b'
         self.turn = 'b'
+        self.count = {'b': 2, 'w': 2}
 
     def get_moves(self, player = None):
         if (player == None):
@@ -51,23 +54,34 @@ class Reversi:
             nc = c + dx[d]
             if nr < 0 or nr >= 8 or nc < 0 or nc >= 8 or grid[nr][nc] == '' or grid[nr][nc] == player:
                 continue
-            nr += dy[d]
-            nc += dx[d]
             valid_dir = False
+            todo = []
             while nr >= 0 and nr < 8 and nc >= 0 and nc < 8 and grid[nr][nc] != '':
                 if grid[nr][nc] == player:
                     valid_dir = True
                     break
+                todo.append([nr, nc])
                 nr += dy[d]
                 nc += dx[d]
             if valid_dir:
-                nr = r + dy[d]
-                nc = c + dx[d]
-                while nr >= 0 and nr < 8 and nc >= 0 and nc < 8 and grid[nr][nc] != '':
-                    if grid[nr][nc] == player:
-                        break
-                    swapped.append([nr, nc])
-                    grid[nr][nc] = player
-                    nr += dy[d]
-                    nc += dx[d]
+                other_player = 'b' if player == 'w' else 'w'
+                self.count[player] += len(todo) + 1
+                self.count[other_player] -= len(todo)
+                for move in todo:
+                    assert(grid[move[0]][move[1]] != player)
+                    grid[move[0]][move[1]] = player
+                    swapped.append(move)
         return swapped
+    
+    def computer_move(self):
+        moves = self.get_moves()
+        move = moves[random.randint(0, len(moves) - 1)]
+        self.make_move(move[0], move[1])
+
+    def tie(self): 
+        return self.count['b'] == self.count['w'] == 32
+
+    def win(self, player):
+        if len(self.get_moves(self.turn)) != 0:
+            return False
+        return self.count[player] > self.count['w' if player == 'b' else 'b']

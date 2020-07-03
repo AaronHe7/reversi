@@ -1,4 +1,4 @@
-import pygame
+import pygame, time
 from reversi import Reversi
 
 WHITE = (255, 255, 255)
@@ -9,7 +9,6 @@ class View:
         self.height = height
         self.width = width
         self.game = Reversi()
-        self.valid_moves = self.game.get_moves()
         self.is_clicked = False
 
     def display_board(self):
@@ -19,6 +18,7 @@ class View:
         self.gridx = x = (self.width - gridw)/2
         self.gridy = y = (self.height - gridh)/2
         pygame.draw.rect(self.screen, GREEN, (x, y, gridw, gridh))
+        valid_moves = self.game.get_moves()
         for i in range(9): # horizontal lines
             pygame.draw.line(self.screen, BLACK, (x, y + i * tile_size), (x + gridw, y + i * tile_size))
         for i in range(9): # horizontal lines
@@ -28,7 +28,7 @@ class View:
                 center = (int(tile_size/2), int(tile_size/2))
                 r = int(tile_size/2 * 0.9)
                 surface = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA).convert_alpha()
-                if [i, j] in self.valid_moves:
+                if [i, j] in valid_moves:
                     color = (255, 255, 255, 64) if game.turn == 'w' else (0, 0, 0, 64)
                 elif game.grid[i][j] == 'w':
                     color = WHITE
@@ -44,11 +44,15 @@ class View:
         if x >= self.gridx and y >= self.gridy and x <= self.gridx + self.gridw and y <= self.gridy + self.gridh:
             r = int((x - self.gridx)/self.tile_size)
             c = int((y - self.gridy)/self.tile_size)
-            print(str(r) + ' ' + str(c))
-            if [r, c] in self.valid_moves:
+            if [r, c] in self.game.get_moves():
                 self.game.make_move(r, c)
                 self.game.turn = 'b' if self.game.turn == 'w' else 'w'
-                self.valid_moves = self.game.get_moves()
+                if self.game.win('b'):
+                    print("Black wins")
+                elif self.game.win('w'):
+                    print("White wins")
+                elif self.game.tie():
+                    print("Tie")
 
     def main(self):
         pygame.init()
