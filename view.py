@@ -67,11 +67,24 @@ class View:
         if [r, c] in self.game.get_moves():
             self.game.make_move(r, c)
             if self.game.win('b'):
+                self.game.end = True
                 print("Black wins!")
             elif self.game.win('w'):
                 print("White wins!")
             elif self.game.tie():
                 print("Tie!")
+    
+    def computer_move(self):
+        self.game.computer_move()
+        if self.game.win('b'):
+            self.game.end = True
+            print("Black wins!")
+        elif self.game.win('w'):
+            self.game.end = True
+            print("White wins!")
+        elif self.game.tie():
+            self.game.end = True
+            print("Tie!")
 
     def main(self):
         pygame.init()
@@ -80,13 +93,12 @@ class View:
         screen.fill(WHITE)
         running = True
         game = self.game
-        self.player = 'w'
+        self.player = 'b'
         self.display()
         pygame.display.update()
         while running:
             if self.game.turn != self.player and not self.game.end:
-                time.sleep(1)
-                self.game.computer_move()
+                self.computer_move()
                 self.display()
                 pygame.display.update()
             for event in pygame.event.get():
