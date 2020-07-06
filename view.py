@@ -1,4 +1,4 @@
-import pygame
+import pygame, time
 from pygame import gfxdraw
 from reversi import Reversi
 
@@ -11,6 +11,7 @@ class View:
         self.width = width
         self.game = Reversi()
         self.is_clicked = False
+        self.end = False
 
     def display(self):
         pygame.draw.rect(self.screen, WHITE, (0, 0, self.width, self.height))
@@ -33,7 +34,7 @@ class View:
             for j in range(8):
                 center = (int(tile_size/2 + x + tile_size * i), int(tile_size/2 + y + tile_size * j))
                 r = int(tile_size/2 * 0.9)
-                if [i, j] in valid_moves:
+                if [i, j] in valid_moves and self.game.turn == self.player:
                     color = (255, 255, 255, 64) if game.turn == 'w' else (0, 0, 0, 64)
                 elif game.grid[i][j] == 'w':
                     color = WHITE
@@ -67,13 +68,33 @@ class View:
             self.game.make_move(r, c)
             self.game.turn = 'b' if self.game.turn == 'w' else 'w'
             if self.game.win('b'):
+                self.end = True
                 print("Black wins")
             elif self.game.win('w'):
+                self.end = True
                 print("White wins")
             elif self.game.tie():
+                self.end = True
                 print("Tie")
             elif not len(self.game.get_moves()):
                 self.game.turn = 'b' if self.game.turn == 'w' else 'w'
+    
+    def computer_move(self):
+        move = self.game.computer_move()
+        if not move:
+            return
+        self.game.turn = 'b' if self.game.turn == 'w' else 'w'
+        if self.game.win('b'):
+            self.end = True
+            print("Black wins")
+        elif self.game.win('w'):
+            self.end = True
+            print("White wins")
+        elif self.game.tie():
+            self.end = True
+            print("Tie")
+        elif not len(self.game.get_moves()):
+            self.game.turn = 'b' if self.game.turn == 'w' else 'w'
 
     def main(self):
         pygame.init()
@@ -82,11 +103,19 @@ class View:
         screen.fill(WHITE)
         running = True
         game = self.game
+        self.player = 'w'
+        self.display()
+        pygame.display.update()
         while running:
+            if self.game.turn != self.player and not self.end:
+                time.sleep(1)
+                self.computer_move()
+                self.display()
+                pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.is_clicked:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.is_clicked and self.game.turn == self.player:
                     self.is_clicked = True
                     self.register_click(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.is_clicked:

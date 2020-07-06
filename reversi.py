@@ -7,16 +7,20 @@ class Reversi:
         self.grid[3][4] = self.grid[4][3] = 'b'
         self.turn = 'b'
         self.count = {'b': 2, 'w': 2}
+        self.recompute_moves()
 
     def get_moves(self, player = None):
         if (player == None):
             player = self.turn
-        moves = []
-        for i in range(8):
-            for j in range(8):
-                if self.valid_move(i, j, player):
-                    moves.append([i, j])
-        return moves
+        return self.moves[player]
+        
+    def recompute_moves(self):
+        self.moves = {'w': [], 'b': []}
+        for player in "wb":
+            for i in range(8):
+                for j in range(8):
+                    if self.valid_move(i, j, player):
+                        self.moves[player].append([i, j])
 
     def valid_move(self, r, c, player = None):
         grid = self.grid
@@ -72,12 +76,16 @@ class Reversi:
                     assert(grid[move[0]][move[1]] != player)
                     grid[move[0]][move[1]] = player
                     swapped.append(move)
+        self.recompute_moves()
         return swapped
     
     def computer_move(self):
         moves = self.get_moves()
+        if len(moves) == 0:
+            return False
         move = moves[random.randint(0, len(moves) - 1)]
         self.make_move(move[0], move[1])
+        return True
 
     def game_over(self):
         return not len(self.get_moves('b')) and not len(self.get_moves('w'))
