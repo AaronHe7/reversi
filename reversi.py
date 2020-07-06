@@ -48,6 +48,7 @@ class Reversi:
         dx = [-1, -1, -1, 1, 1, 1, 0, 0]
         dy = [1, 0, -1, 1, 0, -1, 1, -1]
         grid[r][c] = player
+        self.count[player] += 1
         swapped = []
         for d in range(8):
             nr = r + dy[d]
@@ -65,7 +66,7 @@ class Reversi:
                 nc += dx[d]
             if valid_dir:
                 other_player = 'b' if player == 'w' else 'w'
-                self.count[player] += len(todo) + 1
+                self.count[player] += len(todo)
                 self.count[other_player] -= len(todo)
                 for move in todo:
                     assert(grid[move[0]][move[1]] != player)
@@ -78,10 +79,11 @@ class Reversi:
         move = moves[random.randint(0, len(moves) - 1)]
         self.make_move(move[0], move[1])
 
-    def tie(self): 
-        return self.count['b'] == self.count['w'] == 32
+    def game_over(self):
+        return not len(self.get_moves('b')) and not len(self.get_moves('w'))
 
+    def tie(self): 
+        return self.count['b'] == self.count['w'] and self.game_over()
+    
     def win(self, player):
-        if len(self.get_moves(self.turn)) != 0:
-            return False
-        return self.count[player] > self.count['w' if player == 'b' else 'b']
+        return self.game_over() and self.count[player] > self.count['w' if player == 'b' else 'b']
