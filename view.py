@@ -5,6 +5,7 @@ from reversi import Reversi
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 128, 0)
+RED = (255, 0, 0)
 class View:
     def __init__(self, width, height):
         self.height = height
@@ -12,6 +13,7 @@ class View:
         self.game = Reversi()
         self.is_clicked = False
         self.end = False
+        self.last_move = []
 
     def display(self):
         pygame.draw.rect(self.screen, WHITE, (0, 0, self.width, self.height))
@@ -44,6 +46,9 @@ class View:
                     continue
                 pygame.gfxdraw.filled_circle(self.screen, center[0], center[1], r, color)
                 pygame.gfxdraw.aacircle(self.screen, center[0], center[1], r, color)
+                if [i, j] == self.last_move:
+                    pygame.gfxdraw.filled_circle(self.screen, center[0], center[1], int(r/10), RED)
+                    pygame.gfxdraw.aacircle(self.screen, center[0], center[1], int(r/10), RED)
     
     def display_stats(self):
         r = 20
@@ -66,6 +71,7 @@ class View:
     def player_move(self, r, c):
         if [r, c] in self.game.get_moves():
             self.game.make_move(r, c)
+            self.last_move = [r, c]
             if self.game.win('b'):
                 self.game.end = True
                 print("Black wins!")
@@ -75,7 +81,7 @@ class View:
                 print("Tie!")
     
     def computer_move(self):
-        self.game.computer_move()
+        self.last_move = self.game.computer_move()
         if self.game.win('b'):
             self.game.end = True
             print("Black wins!")
@@ -93,11 +99,12 @@ class View:
         screen.fill(WHITE)
         running = True
         game = self.game
-        self.player = 'b'
+        self.player = 'w'
         self.display()
         pygame.display.update()
         while running:
             if self.game.turn != self.player and not self.game.end:
+                time.sleep(0.5)
                 self.computer_move()
                 self.display()
                 pygame.display.update()

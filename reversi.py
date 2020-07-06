@@ -3,8 +3,8 @@ import random
 class Reversi: 
     def __init__(self):
         self.grid = [['' for i in range(8)] for i in range(8)]
-        self.grid[3][3] = self.grid[4][4] = 'w'
-        self.grid[3][4] = self.grid[4][3] = 'b'
+        self.grid[3][3] = self.grid[4][4] = 'b'
+        self.grid[3][4] = self.grid[4][3] = 'w'
         self.turn = 'b'
         self.end = False
         self.count = {'b': 2, 'w': 2}
@@ -97,9 +97,9 @@ class Reversi:
         moves = self.get_moves()
         if len(moves) == 0:
             return
-        #move = moves[random.randint(0, len(moves) - 1)]
         move = self.minimax(True, None, depth)
         self.make_move(move["move"][0], move["move"][1])
+        return move["move"]
 
     def minimax(self, maximizer = True, player = None, depth = 3):
         if player == None:
