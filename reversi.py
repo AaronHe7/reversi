@@ -6,6 +6,7 @@ class Reversi:
         self.grid[3][3] = self.grid[4][4] = 'w'
         self.grid[3][4] = self.grid[4][3] = 'b'
         self.turn = 'b'
+        self.end = False
         self.count = {'b': 2, 'w': 2}
         self.recompute_moves()
 
@@ -76,17 +77,71 @@ class Reversi:
                     assert(grid[move[0]][move[1]] != player)
                     grid[move[0]][move[1]] = player
                     swapped.append(move)
+        self.turn = 'b' if self.turn == 'w' else 'w'
         self.recompute_moves()
+        if not len(self.get_moves()):
+            self.turn = 'b' if self.turn == 'w' else 'w'
+            self.recompute_moves()
         return swapped
     
     def computer_move(self):
         moves = self.get_moves()
         if len(moves) == 0:
-            return False
-        move = moves[random.randint(0, len(moves) - 1)]
+            return
+        #move = moves[random.randint(0, len(moves) - 1)]
+        move = self.minimax()["move"]
         self.make_move(move[0], move[1])
-        return True
+    
+    def minimax(self, maximizer = True, player = None, depth = 3):
+        if player == None:
+            player = self.turn
+        other_player = 'b' if player == 'w' else 'w'
+        maximizing_player = 'w' if maximizer and player == 'w' or not maximizer and player == 'b' else 'b'
+        minimizing_player = 'w' if maximizing_player == 'b' else 'b'
+        best_move = {"score": 0, "move": []}
+        # check for terminal state
+        if self.win(player):
+            if maximizer:
+                best_move["score"] = 64
+            else:
+                best_move["score"] = -64
+            return best_move
+        elif self.win(other_player):
+            if maximizer:
+                best_move["score"] = -64
+            else:
+                best_move["score"] = 64
+            return best_move
+        elif self.tie():
+            best_move["score"] = 0
+            return best_move
+        elif depth == 1:
+            best_move["score"] = self.count[maximizing_player] - self.count[minimizing_player]
+            return best_move
 
+        best_score = -65 if maximizer else 65
+        moves = self.get_moves(player)
+        for move in moves:
+            cntb = self.count['b']
+            cntw = self.count['w']
+            replace = self.make_move(move[0], move[1])
+            evaluation = self.minimax(player == maximizing_player, self.turn, depth - 1)
+            if maximizer:
+                if evaluation["score"] > best_score:
+                    best_move = move
+                    best_score = evaluation["score"]
+            else:
+                if evaluation["score"] < best_score:
+                    best_move = move
+                    best_score = evaluation["score"]
+            self.count['b'] = cntb
+            self.count['w'] = cntw
+            for cell in replace:
+                self.grid[move[0]][move[1]] = ''
+                self.grid[cell[0]][cell[1]] = other_player
+            self.turn = player
+        return {"move": best_move, "score": best_score}
+    
     def game_over(self):
         return not len(self.get_moves('b')) and not len(self.get_moves('w'))
 

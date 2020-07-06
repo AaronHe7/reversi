@@ -32,9 +32,9 @@ class View:
             pygame.draw.line(self.screen, BLACK, (x + i * tile_size, y), (x + i * tile_size, y + gridh))
         for i in range(8):
             for j in range(8):
-                center = (int(tile_size/2 + x + tile_size * i), int(tile_size/2 + y + tile_size * j))
+                center = (int(tile_size/2 + x + tile_size * j), int(tile_size/2 + y + tile_size * i))
                 r = int(tile_size/2 * 0.9)
-                if [i, j] in valid_moves and self.game.turn == self.player:
+                if [i, j] in valid_moves and (self.game.turn == self.player):
                     color = (255, 255, 255, 64) if game.turn == 'w' else (0, 0, 0, 64)
                 elif game.grid[i][j] == 'w':
                     color = WHITE
@@ -59,42 +59,19 @@ class View:
     def register_click(self, x, y):
         # if click is inside board
         if x >= self.gridx and y >= self.gridy and x <= self.gridx + self.gridw and y <= self.gridy + self.gridh:
-            r = int((x - self.gridx)/self.tile_size)
-            c = int((y - self.gridy)/self.tile_size)
+            r = int((y - self.gridy)/self.tile_size)
+            c = int((x - self.gridx)/self.tile_size)
             self.player_move(r, c)
 
     def player_move(self, r, c):
         if [r, c] in self.game.get_moves():
             self.game.make_move(r, c)
-            self.game.turn = 'b' if self.game.turn == 'w' else 'w'
             if self.game.win('b'):
-                self.end = True
-                print("Black wins")
+                print("Black wins!")
             elif self.game.win('w'):
-                self.end = True
-                print("White wins")
+                print("White wins!")
             elif self.game.tie():
-                self.end = True
-                print("Tie")
-            elif not len(self.game.get_moves()):
-                self.game.turn = 'b' if self.game.turn == 'w' else 'w'
-    
-    def computer_move(self):
-        move = self.game.computer_move()
-        if not move:
-            return
-        self.game.turn = 'b' if self.game.turn == 'w' else 'w'
-        if self.game.win('b'):
-            self.end = True
-            print("Black wins")
-        elif self.game.win('w'):
-            self.end = True
-            print("White wins")
-        elif self.game.tie():
-            self.end = True
-            print("Tie")
-        elif not len(self.game.get_moves()):
-            self.game.turn = 'b' if self.game.turn == 'w' else 'w'
+                print("Tie!")
 
     def main(self):
         pygame.init()
@@ -107,15 +84,15 @@ class View:
         self.display()
         pygame.display.update()
         while running:
-            if self.game.turn != self.player and not self.end:
+            if self.game.turn != self.player and not self.game.end:
                 time.sleep(1)
-                self.computer_move()
+                self.game.computer_move()
                 self.display()
                 pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.is_clicked and self.game.turn == self.player:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.is_clicked and (self.game.turn == self.player):
                     self.is_clicked = True
                     self.register_click(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.is_clicked:
