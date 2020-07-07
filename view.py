@@ -19,6 +19,7 @@ class View:
         pygame.draw.rect(self.screen, WHITE, (0, 0, self.width, self.height))
         self.display_board()
         self.display_stats()
+        self.detect_win()
 
     def display_board(self):
         game = self.game
@@ -53,13 +54,18 @@ class View:
     def display_stats(self):
         r = 20
         font = pygame.font.SysFont("Arial", 30)
-        textw = font.render(str(self.game.count['w']), False, BLACK)
+        textw = font.render(str(self.game.count['w']), True, BLACK)
         pygame.gfxdraw.aacircle(self.screen, int(self.width/5), int(self.gridy/2), r, BLACK)
         self.screen.blit(textw, (self.width/5 + 1.5 * r, self.gridy/2 - 15))
-        textb = font.render(str(self.game.count['b']), False, BLACK)
+        textb = font.render(str(self.game.count['b']), True, BLACK)
         pygame.gfxdraw.filled_circle(self.screen, int(2 * self.width/5), int(self.gridy/2), r, BLACK)
         pygame.gfxdraw.aacircle(self.screen, int(2 * self.width/5), int(self.gridy/2), r, BLACK)
         self.screen.blit(textb, (int(2/5 * self.width + 1.5 * r), int(self.gridy/2 - 15)))
+    
+    def declare_win(self, message):
+        font = pygame.font.SysFont("Arial", 30)
+        text = font.render(message, True, BLACK) 
+        self.screen.blit(text, (int(0.55 * self.width), int(self.gridy/2 - 15)))
 
     def register_click(self, x, y):
         # if click is inside board
@@ -72,25 +78,17 @@ class View:
         if [r, c] in self.game.get_moves():
             self.game.make_move(r, c)
             self.last_move = [r, c]
-            if self.game.win('b'):
-                self.game.end = True
-                print("Black wins!")
-            elif self.game.win('w'):
-                print("White wins!")
-            elif self.game.tie():
-                print("Tie!")
     
-    def computer_move(self):
-        self.last_move = self.game.computer_move()
-        if self.game.win('b'):
-            self.game.end = True
-            print("Black wins!")
-        elif self.game.win('w'):
-            self.game.end = True
-            print("White wins!")
+    def computer_move(self, depth = 3):
+        self.last_move = self.game.computer_move(depth)
+    
+    def detect_win(self):
+        if self.game.win(self.player):
+            self.declare_win("Player wins!")
+        elif self.game.win(self.computer):
+            self.declare_win("Computer wins!")
         elif self.game.tie():
-            self.game.end = True
-            print("Tie!")
+            self.delcare_win("Tie!")
 
     def main(self):
         pygame.init()
@@ -100,18 +98,18 @@ class View:
         running = True
         game = self.game
         self.player = 'w'
+        self.computer = 'b' if self.player == 'w' else 'w'
         self.display()
         pygame.display.update()
         while running:
-            if self.game.turn != self.player and not self.game.end:
-                time.sleep(0.5)
+            if self.game.turn != self.player and not self.game.game_over():
                 self.computer_move()
                 self.display()
                 pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.is_clicked and (self.game.turn == self.player):
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.is_clicked and (self.game.turn == self.player) and not self.game.game_over():
                     self.is_clicked = True
                     self.register_click(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.is_clicked:
