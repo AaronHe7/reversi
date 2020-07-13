@@ -79,8 +79,8 @@ class View:
             self.game.make_move(r, c)
             self.last_move = [r, c]
     
-    def computer_move(self, depth = 3):
-        self.last_move = self.game.computer_move(depth)
+    def computer_move(self, trials = 1000):
+        self.last_move = self.game.computer_move("mcts", trials)
     
     def detect_win(self):
         if self.game.win(self.player):
@@ -88,7 +88,7 @@ class View:
         elif self.game.win(self.computer):
             self.declare_win("Computer wins!")
         elif self.game.tie():
-            self.delcare_win("Tie!")
+            self.declare_win("Tie!")
 
     def main(self):
         pygame.init()
