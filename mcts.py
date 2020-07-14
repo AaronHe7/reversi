@@ -45,3 +45,28 @@ class Node:
             elif winner == 't':
                 self.wins += 0.5
             self.parent.backpropagate(winner)
+    
+class Mcts:
+    def __init__(self, game, debug = False):
+        self.game = game
+        self.debug = debug
+    
+    def best_move(self, simulations):
+        root = Node(self.game)
+        for i in range(simulations):
+            node = root.select()
+            if not node.game.game_over():
+                child = node.expand()
+            else:
+                child = node
+            child.backpropagate(child.simulate())
+        most_trials = 0
+        best_child = -1
+        for i in range(len(root.children)):
+            child = root.children[i]
+            if child.trials > most_trials:
+                best_child = i
+                most_trials = child.trials
+        if self.debug:
+            print('(' + self.game.turn + ')' + " most trials: " + str(most_trials) + ", wins: " + str(root.children[i].wins))
+        return self.game.get_moves()[best_child]

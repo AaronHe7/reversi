@@ -1,5 +1,4 @@
-import random, copy, time
-from mcts import Node
+import random, copy, time, mcts
 
 class Reversi: 
     def __init__(self):
@@ -93,13 +92,13 @@ class Reversi:
         move = moves[random.randint(0, len(moves) - 1)]
         self.make_move(move[0], move[1])
     
-    def computer_move(self, algorithm = "mcts", depth = 3):
+    def computer_move(self, algorithm, depth):
         player = self.turn
         moves = self.get_moves()
         if len(moves) == 0:
             return
         if algorithm == "minimax":
-            move = self.minimax(True, None, depth)
+            move = self.minimax(True, depth)
             self.make_move(move["move"][0], move["move"][1])
             return move["move"]
         else:
@@ -107,9 +106,8 @@ class Reversi:
             self.make_move(move[0], move[1])
             return move
 
-    def minimax(self, maximizing_player = True, player = None, depth = 3, alpha = -65, beta = 65):
-        if player == None:
-            player = self.turn
+    def minimax(self, maximizing_player = True, depth = 3):
+        player = self.turn
         other_player = 'b' if player == 'w' else 'w'
         maximizer = player if maximizing_player else other_player
         minimizer = 'w' if maximizer == 'b' else 'b' 
@@ -130,11 +128,9 @@ class Reversi:
 
         moves = self.get_moves(player)
         for move in moves:
-            gridbefore = copy.deepcopy(self.grid)
-            cntb = self.count['b']
-            cntw = self.count['w']
-            self.make_move(move[0], move[1])
-            evaluation = self.minimax(maximizer == self.turn, self.turn, depth - 1)
+            new_board = copy.deepcopy(self)
+            new_board.make_move(move[0], move[1])
+            evaluation = new_board.minimax(maximizer == self.turn, depth - 1)
             if maximizing_player:
                 if evaluation["score"] > best_move["score"]:
                     best_move["move"] = move
@@ -143,31 +139,12 @@ class Reversi:
                 if evaluation["score"] < best_move["score"]:
                     best_move["move"] = move
                     best_move["score"] = evaluation["score"]
-            self.count['b'] = cntb
-            self.count['w'] = cntw
-            self.grid = gridbefore
-            self.turn = player
         return best_move
     
-    def mcts(self, simulations = 1000):
-        root = Node(self)
-        for i in range(simulations):
-            node = root.select()
-            if not node.game.game_over():
-                child = node.expand()
-            else:
-                child = node
-            child.backpropagate(child.simulate())
-        most_trials = 0
-        best_child = -1
-        for i in range(len(root.children)):
-            child = root.children[i]
-            if child.trials > most_trials:
-                best_child = i
-                most_trials = child.trials
-        print('(' + self.turn + ')' + " most trials: " + str(most_trials) + ", wins: " + str(root.children[i].wins))
-        return self.get_moves()[best_child]
-    
+    def mcts(self, simulations):
+        evaluator = mcts.Mcts(self, True)
+        return evaluator.best_move(simulations)
+
     def game_over(self):
         return not len(self.get_moves('b')) and not len(self.get_moves('w'))
 
