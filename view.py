@@ -14,12 +14,30 @@ class View:
         self.is_clicked = False
         self.end = False
         self.last_move = []
+        self.in_menu = True
+        self.player = 'b'
+        self.computer = 'w'
 
     def display(self):
         pygame.draw.rect(self.screen, WHITE, (0, 0, self.width, self.height))
         self.display_board()
         self.display_stats()
         self.detect_win()
+    
+    def display_menu(self):
+        pygame.draw.rect(self.screen, WHITE, (0, 0, self.width, self.height))
+        large_font = pygame.font.SysFont("Arial", 40)
+        title = large_font.render("Reversi", True, BLACK)
+        self.screen.blit(title, ((self.width - title.get_width())/2, self.height * 0.1))
+        font = pygame.font.SysFont("Arial", 30)
+        color_text = large_font.render("Choose a color:", True, BLACK)
+        self.screen.blit(color_text, ((self.width - color_text.get_width())/2, self.height * 0.3))
+        c1 = [int(self.width * 0.4), int(self.height * 0.5)]
+        c2 = [int(self.width * 0.6), int(self.height * 0.5)]
+        r = 40
+        pygame.gfxdraw.filled_circle(self.screen, c1[0], c1[1], r, BLACK)
+        pygame.gfxdraw.aacircle(self.screen, c1[0], c1[1], r, BLACK)
+        pygame.gfxdraw.aacircle(self.screen, c2[0], c2[1], r, BLACK)
 
     def display_board(self):
         game = self.game
@@ -67,12 +85,29 @@ class View:
         text = font.render(message, True, BLACK) 
         self.screen.blit(text, (int(0.55 * self.width), int(self.gridy/2 - 15)))
 
+    def dist(self, coord1, coord2):
+        return (coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2
+
     def register_click(self, x, y):
-        # if click is inside board
-        if x >= self.gridx and y >= self.gridy and x <= self.gridx + self.gridw and y <= self.gridy + self.gridh:
-            r = int((y - self.gridy)/self.tile_size)
-            c = int((x - self.gridx)/self.tile_size)
-            self.player_move(r, c)
+        if not self.in_menu:
+            # if click is inside board
+            if x >= self.gridx and y >= self.gridy and x <= self.gridx + self.gridw and y <= self.gridy + self.gridh:
+                r = int((y - self.gridy)/self.tile_size)
+                c = int((x - self.gridx)/self.tile_size)
+                self.player_move(r, c)
+        else:
+            c1 = [int(self.width * 0.4), int(self.height * 0.5)]
+            c2 = [int(self.width * 0.6), int(self.height * 0.5)]
+            r = 40
+            if self.dist([x, y], c1) < r * r:
+                self.in_menu = False
+                self.player = 'b'
+                self.computer = 'w'
+            if self.dist([x, y], c2) < r * r:
+                self.in_menu = False
+                self.player = 'w'
+                self.computer = 'b'
+
 
     def player_move(self, r, c):
         if [r, c] in self.game.get_moves():
@@ -97,22 +132,22 @@ class View:
         screen.fill(WHITE)
         running = True
         game = self.game
-        self.player = 'b'
-        self.computer = 'b' if self.player == 'w' else 'w'
-        self.display()
-        pygame.display.update()
         while running:
-            if self.game.turn != self.player and not self.game.game_over():
+            if not self.in_menu and self.game.turn != self.player and not self.game.game_over():
                 self.computer_move()
                 self.display()
                 pygame.display.update()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.is_clicked and (self.game.turn == self.player) and not self.game.game_over():
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not self.is_clicked:
                     self.is_clicked = True
                     self.register_click(pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1])
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.is_clicked:
                     self.is_clicked = False
             self.display()
+            if self.in_menu:
+                self.display_menu()
+            else:
+                self.display()
             pygame.display.update()
