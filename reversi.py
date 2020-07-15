@@ -106,7 +106,7 @@ class Reversi:
             self.make_move(move[0], move[1])
             return move
 
-    def minimax(self, maximizing_player = True, depth = 3):
+    def minimax(self, maximizing_player, depth):
         player = self.turn
         other_player = 'b' if player == 'w' else 'w'
         maximizer = player if maximizing_player else other_player
@@ -130,7 +130,7 @@ class Reversi:
         for move in moves:
             new_board = copy.deepcopy(self)
             new_board.make_move(move[0], move[1])
-            evaluation = new_board.minimax(maximizer == self.turn, depth - 1)
+            evaluation = new_board.minimax(maximizer == new_board.turn, depth - 1)
             if maximizing_player:
                 if evaluation["score"] > best_move["score"]:
                     best_move["move"] = move

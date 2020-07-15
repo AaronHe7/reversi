@@ -97,7 +97,7 @@ class View:
         screen.fill(WHITE)
         running = True
         game = self.game
-        self.player = 'w'
+        self.player = 'b'
         self.computer = 'b' if self.player == 'w' else 'w'
         self.display()
         pygame.display.update()
