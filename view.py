@@ -15,8 +15,8 @@ class View:
         self.end = False
         self.last_move = []
         self.in_menu = True
-        self.player = 'b'
-        self.computer = 'w'
+        self.player = -1
+        self.computer = 1
 
     def display(self):
         pygame.draw.rect(self.screen, WHITE, (0, 0, self.width, self.height))
@@ -56,10 +56,10 @@ class View:
                 center = (int(tile_size/2 + x + tile_size * j), int(tile_size/2 + y + tile_size * i))
                 r = int(tile_size/2 * 0.9)
                 if [i, j] in valid_moves and (self.game.turn == self.player):
-                    color = (255, 255, 255, 64) if game.turn == 'w' else (0, 0, 0, 64)
-                elif game.grid[i][j] == 'w':
+                    color = (255, 255, 255, 64) if game.turn == 1 else (0, 0, 0, 64)
+                elif game.grid[i][j] == 1:
                     color = WHITE
-                elif game.grid[i][j] == 'b':
+                elif game.grid[i][j] == -1:
                     color = BLACK 
                 else:
                     continue
@@ -72,10 +72,10 @@ class View:
     def display_stats(self):
         r = 20
         font = pygame.font.SysFont("Arial", 30)
-        textw = font.render(str(self.game.count['w']), True, BLACK)
+        textw = font.render(str(self.game.count[1]), True, BLACK)
         pygame.gfxdraw.aacircle(self.screen, int(self.width/5), int(self.gridy/2), r, BLACK)
         self.screen.blit(textw, (self.width/5 + 1.5 * r, self.gridy/2 - 15))
-        textb = font.render(str(self.game.count['b']), True, BLACK)
+        textb = font.render(str(self.game.count[-1]), True, BLACK)
         pygame.gfxdraw.filled_circle(self.screen, int(2 * self.width/5), int(self.gridy/2), r, BLACK)
         pygame.gfxdraw.aacircle(self.screen, int(2 * self.width/5), int(self.gridy/2), r, BLACK)
         self.screen.blit(textb, (int(2/5 * self.width + 1.5 * r), int(self.gridy/2 - 15)))
@@ -101,12 +101,12 @@ class View:
             r = 40
             if self.dist([x, y], c1) < r * r:
                 self.in_menu = False
-                self.player = 'b'
-                self.computer = 'w'
+                self.player = -1
+                self.computer = 1
             if self.dist([x, y], c2) < r * r:
                 self.in_menu = False
-                self.player = 'w'
-                self.computer = 'b'
+                self.player = 1
+                self.computer = -1
 
 
     def player_move(self, r, c):
